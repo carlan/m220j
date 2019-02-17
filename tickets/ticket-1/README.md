@@ -52,7 +52,7 @@ Now proceed to the status page to run the full suite of integration tests and ge
 To have the application use the changes that you implemented for this ticket, make sure to **restart the application** after you completed those changes. Also, only refresh the status page to see the new results of the tests, after the application has been restarted.
 
 <details> 
-  <summary>After passing the relevant tests, what is the validation code for **Connection**?</summary>
+  <summary>After passing the relevant tests, what is the validation code for Connection?</summary>
    Answer: 5a9026003a466d5ac6497a9d
 </details>
 
