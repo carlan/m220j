@@ -286,6 +286,10 @@ public class MovieDao extends AbstractMFlixDao {
     // Your job is to order the stages correctly in the pipeline.
     // Starting with the `matchStage` add the remaining stages.
     pipeline.add(matchStage);
+    pipeline.add(sortStage);
+    pipeline.add(skipStage);
+    pipeline.add(limitStage);
+    pipeline.add(facetStage);
 
     moviesCollection.aggregate(pipeline).iterator().forEachRemaining(movies::add);
     return movies;

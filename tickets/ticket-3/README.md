@@ -60,5 +60,5 @@ To have the application use the changes that you implemented for this ticket, ma
 
 <details> 
   <summary>After passing the relevant tests, what is the validation code for Text and Subfield Search?</summary>
-   Answer: 5a94762f949291c47fa6474d
+   Answer: 5a96a6a29c453a40d04922cc
 </details>
