@@ -11,11 +11,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Sorts.*;
 
 @Component
 public class MovieDao extends AbstractMFlixDao {
@@ -33,8 +36,21 @@ public class MovieDao extends AbstractMFlixDao {
 
   @SuppressWarnings("unchecked")
   private Bson buildLookupStage() {
-    return null;
+    String from = "comments";
+    String as = "comments";
 
+    Variable<String> let = new Variable<String>("id", "$_id");
+
+    Document eq = Document.parse("{'$eq':['$movie_id','$$id']}");
+    Bson match = match( expr ( eq ));
+    Bson sort = sort( descending("date")); //fix from forum
+
+    return lookup(
+      from,                       //from
+      Arrays.asList(let),         //let
+      Arrays.asList(match, sort), //pipeline
+      as                          //as
+    );
   }
 
   /**
@@ -66,9 +82,9 @@ public class MovieDao extends AbstractMFlixDao {
     List<Bson> pipeline = new ArrayList<>();
     // match stage to find movie
     Bson match = Aggregates.match(Filters.eq("_id", new ObjectId(movieId)));
-    Bson join_with_comments = Aggregates.lookup("comments", "_id", "movie_id", "comments");
+    Bson joinWithComments = buildLookupStage();
     pipeline.add(match);
-    pipeline.add(join_with_comments);
+    pipeline.add(joinWithComments);
 
     Document movie = moviesCollection.aggregate(pipeline).first();
 
