@@ -30,10 +30,12 @@ import java.awt.List;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Updates.*;
 
 @Configuration
 public class UserDao extends AbstractMFlixDao {
@@ -88,7 +90,12 @@ public class UserDao extends AbstractMFlixDao {
     session.setUserId(userId);
     session.setJwt(jwt);
 
-    sessionsCollection.insertOne(session);
+    if (Optional.ofNullable(sessionsCollection.find( eq("user_id", userId) ).first()).isPresent()) {
+      sessionsCollection.updateOne(eq("user_id", userId), set("jwt", jwt));
+    } else {
+      sessionsCollection.insertOne(session);  
+    }
+
     return true;
     //TODO > Ticket: Handling Errors - implement a safeguard against
     // creating a session with the same jwt token.
@@ -145,10 +152,14 @@ public class UserDao extends AbstractMFlixDao {
    * @return User object that just been updated.
    */
   public boolean updateUserPreferences(String email, Map<String, ?> userPreferences) {
-    //TODO> Ticket: User Preferences - implement the method that allows for user preferences to
-    // be updated.
     //TODO > Ticket: Handling Errors - make this method more robust by
     // handling potential exceptions when updating an entry.
-    return false;
+    return usersCollection
+      .updateOne( 
+        eq("email", email), 
+        set("preferences", 
+          Optional.ofNullable(userPreferences).orElseThrow( () -> 
+            new IncorrectDaoOperation("user preferences cannot be null") ) ) )
+      .wasAcknowledged();
   }
 }
