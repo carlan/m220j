@@ -134,9 +134,19 @@ public class CommentDao extends AbstractMFlixDao {
     // TODO> Ticket Delete Comments - Implement the method that enables the deletion of a user
     // comment
     // TIP: make sure to match only users that own the given commentId
+    if(!Optional.ofNullable(commentId).isPresent()) {
+      throw new IllegalArgumentException("Commend id cannot be null");
+    }
+
+    DeleteResult dr = commentCollection
+      .deleteOne(
+        and( 
+          eq("_id", new ObjectId(commentId)), 
+          eq("email", email)));
+          
     // TODO> Ticket Handling Errors - Implement a try catch block to
     // handle a potential write exception when given a wrong commentId.
-    return false;
+    return dr.getDeletedCount() > 0;
   }
 
   /**
