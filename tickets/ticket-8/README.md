@@ -43,5 +43,5 @@ To have the application use the changes that you implemented for this ticket, ma
 
 <details> 
   <summary>After passing the relevant tests, what is the validation code for User Preferences?</summary>
-   Answer: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+   Answer: 5aabe31503ac76bc4f73e267
 </details>
