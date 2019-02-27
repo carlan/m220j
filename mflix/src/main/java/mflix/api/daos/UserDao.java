@@ -1,5 +1,6 @@
 package mflix.api.daos;
 
+import com.mongodb.ErrorCategory;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
@@ -71,7 +72,16 @@ public class UserDao extends AbstractMFlixDao {
    * @return True if successful, throw IncorrectDaoOperation otherwise
    */
   public boolean addUser(User user) {
-    usersCollection.withWriteConcern(WriteConcern.MAJORITY).insertOne(user);
+    try {
+      usersCollection.withWriteConcern(WriteConcern.MAJORITY).insertOne(user);
+    } catch (MongoException e) {
+      log.error("An error ocurred while trying to insert a User.");
+      if (ErrorCategory.fromErrorCode( e.getCode() ) == ErrorCategory.DUPLICATE_KEY) {
+        throw new IncorrectDaoOperation("The User is already in the database.");
+      }
+      return false;
+    }
+    
     return true;
     //TODO > Ticket: Handling Errors - make sure to only add new users
     // and not users that already exist.
@@ -90,10 +100,15 @@ public class UserDao extends AbstractMFlixDao {
     session.setUserId(userId);
     session.setJwt(jwt);
 
-    if (Optional.ofNullable(sessionsCollection.find( eq("user_id", userId) ).first()).isPresent()) {
-      sessionsCollection.updateOne(eq("user_id", userId), set("jwt", jwt));
-    } else {
-      sessionsCollection.insertOne(session);  
+    try {
+      if (Optional.ofNullable(sessionsCollection.find( eq("user_id", userId) ).first()).isPresent()) {
+        sessionsCollection.updateOne(eq("user_id", userId), set("jwt", jwt));
+      } else {
+        sessionsCollection.insertOne(session);  
+      }
+    } catch (MongoException e) {
+      log.error("An error ocurred while trying to insert/update a Session.");
+      return false;
     }
 
     return true;
@@ -140,6 +155,15 @@ public class UserDao extends AbstractMFlixDao {
     // handling potential exceptions.
     sessionsCollection.deleteMany(eq("user_id", email));
     usersCollection.deleteMany(eq("email", email));
+    
+    try {
+      sessionsCollection.deleteMany(eq("user_id", email));
+      usersCollection.deleteMany(eq("email", email));
+    } catch (MongoException e) {
+      log.error("An error ocurred while trying to delete a User.");
+      return false;
+    }
+    
     return true;
   }
 
@@ -154,12 +178,19 @@ public class UserDao extends AbstractMFlixDao {
   public boolean updateUserPreferences(String email, Map<String, ?> userPreferences) {
     //TODO > Ticket: Handling Errors - make this method more robust by
     // handling potential exceptions when updating an entry.
-    return usersCollection
+
+    try {
+      usersCollection
       .updateOne( 
         eq("email", email), 
         set("preferences", 
           Optional.ofNullable(userPreferences).orElseThrow( () -> 
-            new IncorrectDaoOperation("user preferences cannot be null") ) ) )
-      .wasAcknowledged();
+            new IncorrectDaoOperation("user preferences cannot be null") ) ) );
+    } catch (MongoException e) {
+      log.error("An error ocurred while trying to update User preferences.");
+      return false;
+    }
+
+    return true;
   }
 }

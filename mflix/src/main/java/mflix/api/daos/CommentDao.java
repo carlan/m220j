@@ -92,7 +92,12 @@ public class CommentDao extends AbstractMFlixDao {
       throw new IncorrectDaoOperation("Comment id cannot be null");
     }
 
-    commentCollection.insertOne(comment);
+    try {
+      commentCollection.insertOne(comment);  
+    } catch (MongoException e) {
+      log.error("An error ocurred while trying to insert a Comment.");
+      return null;
+    }
     
     return comment;
   }
@@ -114,13 +119,20 @@ public class CommentDao extends AbstractMFlixDao {
     // TODO> Ticket - Handling Errors: Implement a try catch block to
     // handle a potential write exception when given a wrong commentId.
     
-    UpdateResult ur = commentCollection.updateOne(
-      and(
-        eq("_id", new ObjectId(commentId)), 
-        eq("email", email)),
-      combine(
-        set("text", text),
-        set("date", new Date())));
+    UpdateResult ur = null;
+
+    try {
+      ur = commentCollection.updateOne(
+        and(
+          eq("_id", new ObjectId(commentId)), 
+          eq("email", email)),
+        combine(
+          set("text", text),
+          set("date", new Date())));
+    } catch (MongoException e) {
+      log.error("An error ocurred while trying to update a Comment.");
+      return false;
+    }
     
     return ur.getMatchedCount() > 0 && ur.getModifiedCount() > 0;
   }
@@ -137,12 +149,19 @@ public class CommentDao extends AbstractMFlixDao {
       throw new IllegalArgumentException("Commend id cannot be null");
     }
 
-    DeleteResult dr = commentCollection
-      .deleteOne(
-        and( 
-          eq("_id", new ObjectId(commentId)), 
-          eq("email", email)));
-          
+    DeleteResult dr = null;
+
+    try {
+      dr = commentCollection
+        .deleteOne(
+          and( 
+            eq("_id", new ObjectId(commentId)), 
+            eq("email", email)));
+    } catch (MongoException e) {
+      log.error("An error ocurred while trying to delete a Comment.");
+      return false;
+    }
+
     // TODO> Ticket Handling Errors - Implement a try catch block to
     // handle a potential write exception when given a wrong commentId.
     return dr.getDeletedCount() > 0;
