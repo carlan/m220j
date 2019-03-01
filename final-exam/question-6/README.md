@@ -1,20 +1,17 @@
-Final: Question 7
+Final: Question 6
 =================
 
 **Problem:**
 
-Assume a collection called **people_heights** with documents that look like this:
+Suppose a client application is sending writes to a replica set with three nodes, but the primary node stops responding:
 
-```
-{
-  "name": "Ada",
-  "height": 1.7
-}
-```
+![](/final-exam/images/replica_set_primary_down.png?raw=true "")
+
+BAssume that none of the connection settings have been changed, and that the client is only sending insert statements with write concern w: 1 to the server.
 
 <details> 
-  <summary>Which of the following queries will find only the 4th- and 5th-tallest people in the people_heights collection represented by the coll object?</summary>
-   Answer: (X) coll.find().sort(orderBy(descending("height"))).skip(3).limit(2)
+  <summary>If after 30 seconds, the client still cannot connect to a new primary; which of the following exceptions will be raised by the Java Driver?</summary>
+   Answer: (X) com.mongodb.MongoTimeoutException
 </details>
 
 
